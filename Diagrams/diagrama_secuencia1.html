@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagrama de Secuencia - Sistema de Gestión de Productos</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 25px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
+            padding: 70px;
+            max-width: 100%;
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 3em;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 70px;
+            font-size: 1.5em;
+            font-weight: 400;
+            letter-spacing: 0.3px;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+            background: #fafafa;
+            padding: 60px;
+            border-radius: 20px;
+            min-height: 800px;
+            margin-bottom: 60px;
+            border: 3px solid #e9ecef;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 70px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 22px 44px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 20px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        button:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(102, 126, 234, 0.7);
+        }
+
+        button:active {
+            transform: translateY(-1px);
+        }
+
+        .legend {
+            padding: 50px;
+            background: #f8f9fa;
+            border-radius: 20px;
+            border: 3px solid #e9ecef;
+        }
+
+        .legend h3 {
+            margin-bottom: 40px;
+            color: #2c3e50;
+            font-size: 1.9em;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            letter-spacing: -0.3px;
+        }
+
+        .legend-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 35px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .legend-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            border-color: #667eea;
+        }
+
+        .legend-color {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            border: 4px solid #333;
+            flex-shrink: 0;
+        }
+
+        .legend-item span {
+            font-size: 17px;
+            color: #495057;
+            line-height: 1.6;
+            letter-spacing: 0.2px;
+        }
+
+        .legend-item strong {
+            color: #2c3e50;
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .info-box {
+            padding: 30px;
+            background: #e8f4f8;
+            border-left: 6px solid #4682B4;
+            border-radius: 10px;
+            margin-bottom: 40px;
+        }
+
+        .info-box h4 {
+            color: #2c3e50;
+            font-size: 1.4em;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .info-box p {
+            color: #495057;
+            font-size: 16px;
+            line-height: 1.8;
+            margin-bottom: 10px;
+        }
+
+        .info-box ul {
+            margin-left: 25px;
+            margin-top: 15px;
+        }
+
+        .info-box li {
+            color: #495057;
+            font-size: 16px;
+            line-height: 1.8;
+            margin-bottom: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 40px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            .subtitle {
+                font-size: 1.1em;
+                margin-bottom: 40px;
+            }
+
+            button {
+                padding: 16px 32px;
+                font-size: 17px;
+            }
+
+            .legend {
+                padding: 30px;
+            }
+
+            .legend h3 {
+                font-size: 1.5em;
+                margin-bottom: 25px;
+            }
+
+            .legend-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .legend-color {
+                width: 50px;
+                height: 50px;
+            }
+
+            .legend-item {
+                padding: 15px;
+            }
+
+            .legend-item span {
+                font-size: 15px;
+            }
+
+            .mermaid {
+                padding: 30px;
+                min-height: 600px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Diagrama de Secuencia</h1>
+        <p class="subtitle">Sistema de Gestión de Productos - Flujo de Interacciones</p>
+
+        <div class="info-box">
+            <h4>📌 ¿Qué es un Diagrama de Secuencia?</h4>
+            <p>Un diagrama de secuencia muestra las <strong>interacciones entre objetos en orden cronológico</strong>. A diferencia del diagrama de flujo que muestra la estructura del sistema, este muestra <strong>cómo los componentes se comunican entre sí en el tiempo</strong>.</p>
+            <ul>
+                <li><strong>Eje vertical:</strong> representa el tiempo (de arriba hacia abajo)</li>
+                <li><strong>Líneas sólidas (→):</strong> representan solicitudes o mensajes síncronos</li>
+                <li><strong>Líneas punteadas (- ->):</strong> representan respuestas</li>
+                <li><strong>Cajas de notas:</strong> agrupan flujos de procesos específicos</li>
+            </ul>
+        </div>
+
+        <div class="mermaid">
+sequenceDiagram
+    participant U as Usuario
+    participant I as Interfaz
+    participant S as Sistema
+    participant D as Datos
+
+    Note over U,D: CREAR/EDITAR PRODUCTO
+    U->>I: Abre formulario de producto
+    I->>S: Solicita crear/editar producto
+    S->>D: Guarda información del producto
+    D-->>S: Producto guardado
+    S->>I: Actualiza lista de productos
+    I-->>U: Muestra producto en la tabla
+
+    Note over U,D: IMPORTAR PRODUCTOS DESDE EXCEL
+    U->>I: Selecciona archivo Excel
+    I->>S: Envía archivo para importar
+    S->>S: Procesa datos del Excel
+    S->>D: Guarda productos importados
+    D-->>S: Productos guardados
+    S->>I: Actualiza lista de productos
+    I-->>U: Muestra productos importados
+        </div>
+
+        <div class="controls">
+            <button onclick="zoomIn()">🔍 Zoom In</button>
+            <button onclick="zoomOut()">🔍 Zoom Out</button>
+            <button onclick="resetZoom()">↻ Reset</button>
+            <button onclick="downloadSVG()">💾 Descargar SVG</button>
+        </div>
+
+        <div class="legend">
+            <h3>📋 Componentes del Sistema</h3>
+            <div class="legend-grid">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #FFE4B5; border-color: #DEB887;"></div>
+                    <span><strong>Usuario (U)</strong> - Actor que inicia las acciones</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #E6F3FF; border-color: #4A90E2;"></div>
+                    <span><strong>Interfaz (I)</strong> - Capa de presentación visual</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #E6FFE6; border-color: #00AA00;"></div>
+                    <span><strong>Sistema (S)</strong> - Lógica de negocio</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #E0F6FF; border-color: #4682B4;"></div>
+                    <span><strong>Datos (D)</strong> - Capa de persistencia</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="legend" style="margin-top: 40px;">
+            <h3>🔄 Flujos de Proceso</h3>
+            <div class="legend-grid">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-color: #667eea;"></div>
+                    <span><strong>CREAR/EDITAR PRODUCTO</strong> - Gestión individual de productos (pasos 1-6)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-color: #f5576c;"></div>
+                    <span><strong>IMPORTAR DESDE EXCEL</strong> - Carga masiva de productos (pasos 7-13)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Inicializar Mermaid
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            sequence: {
+                diagramMarginX: 50,
+                diagramMarginY: 30,
+                actorMargin: 100,
+                width: 200,
+                height: 65,
+                boxMargin: 20,
+                boxTextMargin: 10,
+                noteMargin: 15,
+                messageMargin: 50,
+                mirrorActors: true,
+                useMaxWidth: true
+            }
+        });
+
+        let currentZoom = 1;
+
+        function zoomIn() {
+            currentZoom += 0.1;
+            applyZoom();
+        }
+
+        function zoomOut() {
+            if (currentZoom > 0.3) {
+                currentZoom -= 0.1;
+                applyZoom();
+            }
+        }
+
+        function resetZoom() {
+            currentZoom = 1;
+            applyZoom();
+        }
+
+        function applyZoom() {
+            const mermaidDiv = document.querySelector('.mermaid');
+            mermaidDiv.style.transform = `scale(${currentZoom})`;
+            mermaidDiv.style.transformOrigin = 'top center';
+            mermaidDiv.style.transition = 'transform 0.3s ease';
+        }
+
+        function downloadSVG() {
+            const svg = document.querySelector('.mermaid svg');
+            if (svg) {
+                const serializer = new XMLSerializer();
+                const svgString = serializer.serializeToString(svg);
+                const blob = new Blob([svgString], { type: 'image/svg+xml' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'diagrama-secuencia-sistema.svg';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+        }
+    </script>
+</body>
+</html>
