@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Productos de Muestra - Mochima</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #FF4444 0%, #FF6B35 50%, #FF8C42 100%);
+            color: white;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #FFD700;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            margin-bottom: 30px;
+        }
+
+        .instructions {
+            background: rgba(255, 215, 0, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 4px solid #FFD700;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        th,
+        td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        th {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.3) 0%, rgba(255, 165, 0, 0.1) 100%);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        tr:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .category {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .sushi {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .furai {
+            background: #FF9800;
+            color: white;
+        }
+
+        .kimchi {
+            background: #9C27B0;
+            color: white;
+        }
+
+        .gohan {
+            background: #607D8B;
+            color: white;
+        }
+
+        .handroll {
+            background: #E91E63;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🍱 Productos de Muestra - Mochima</h1>
+
+        <div class="instructions">
+            <h3>📋 Instrucciones:</h3>
+            <p>Esta tabla contiene 10 productos de muestra para Mochima. Puedes copiar estos datos y crear un archivo
+                Excel para importar al dashboard.</p>
+            <p><strong>Formato requerido:</strong> SKU, Nombre, Cantidad, Precio</p>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>SKU</th>
+                    <th>Nombre</th>
+                    <th>Cantidad</th>
+                    <th>Precio (CLP)</th>
+                    <th>Categoría</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>MCH-001</td>
+                    <td>Salmón Mayo</td>
+                    <td>25</td>
+                    <td>4500</td>
+                    <td><span class="category sushi">Sushi</span></td>
+                </tr>
+                <tr>
+                    <td>MCH-002</td>
+                    <td>Pollo Teriyaki</td>
+                    <td>30</td>
+                    <td>4000</td>
+                    <td><span class="category sushi">Sushi</span></td>
+                </tr>
+                <tr>
+                    <td>MCH-003</td>
+                    <td>Centolla Mayo</td>
+                    <td>20</td>
+                    <td>5000</td>
+                    <td><span class="category sushi">Sushi</span></td>
+                </tr>
+                <tr>
+                    <td>MCH-004</td>
+                    <td>Camarón Acevichado</td>
+                    <td>22</td>
+                    <td>4800</td>
+                    <td><span class="category sushi">Sushi</span></td>
+                </tr>
+                <tr>
+                    <td>MCH-005</td>
+                    <td>Choclo-Palmito Mayo</td>
+                    <td>35</td>
+                    <td>3500</td>
+                    <td><span class="category sushi">Sushi</span></td>
+                </tr>
+                <tr>
+                    <td>MCH-006</td>
+                    <td>Pollo Picante</td>
+                    <td>28</td>
+                    <td>4200</td>
+                    <td><span class="category sushi">Sushi</span></td>
+                </tr>
+                <tr>
+                    <td>MCH-007</td>
+                    <td>Furai Vegetariano</td>
+                    <td>15</td>
+                    <td>6000</td>
+                    <td><span class="category furai">Furai</span></td>
+                </tr>
+                <tr>
+                    <td>MCH-008</td>
+                    <td>Furai Proteína Animal</td>
+                    <td>18</td>
+                    <td>6500</td>
+                    <td><span class="category furai">Furai</span></td>
+                </tr>
+                <tr>
+                    <td>MCH-009</td>
+                    <td>Kimchi (500g)</td>
+                    <td>12</td>
+                    <td>7500</td>
+                    <td><span class="category kimchi">Kimchi</span></td>
+                </tr>
+                <tr>
+                    <td>MCH-010</td>
+                    <td>Handroll</td>
+                    <td>40</td>
+                    <td>4500</td>
+                    <td><span class="category handroll">Handroll</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="instructions" style="margin-top: 30px;">
+            <h3>💡 Datos para Excel:</h3>
+            <p>Puedes copiar estos datos directamente a Excel:</p>
+            <pre style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 5px; overflow-x: auto;">
+SKU,Nombre,Cantidad,Precio
+MCH-001,Salmón Mayo,25,4500
+MCH-002,Pollo Teriyaki,30,4000
+MCH-003,Centolla Mayo,20,5000
+MCH-004,Camarón Acevichado,22,4800
+MCH-005,Choclo-Palmito Mayo,35,3500
+MCH-006,Pollo Picante,28,4200
+MCH-007,Furai Vegetariano,15,6000
+MCH-008,Furai Proteína Animal,18,6500
+MCH-009,Kimchi (500g),12,7500
+MCH-010,Handroll,40,4500
+            </pre>
+        </div>
+
+        <div class="instructions" style="margin-top: 20px;">
+            <h3>🍣 Información Adicional:</h3>
+            <p><strong>Categorías de productos:</strong></p>
+            <ul>
+                <li><span class="category sushi">Sushi</span> - Onigiri tradicionales con diferentes rellenos</li>
+                <li><span class="category furai">Furai</span> - Productos envueltos en panko y fritos</li>
+                <li><span class="category kimchi">Kimchi</span> - Col fermentada con especias</li>
+                <li><span class="category gohan">Gohan</span> - Arroz con diferentes proteínas</li>
+                <li><span class="category handroll">Handroll</span> - Rollos de sushi en forma de cono</li>
+            </ul>
+        </div>
+    </div>
+</body>
+
+</html>

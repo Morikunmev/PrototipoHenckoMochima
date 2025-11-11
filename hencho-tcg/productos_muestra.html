@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Productos de Muestra - Hencho TCG</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: white;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #64B5F6;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            margin-bottom: 30px;
+        }
+
+        .instructions {
+            background: rgba(100, 181, 246, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 4px solid #64B5F6;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        th,
+        td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        th {
+            background: linear-gradient(135deg, rgba(100, 181, 246, 0.3) 0%, rgba(100, 181, 246, 0.1) 100%);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        tr:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .rarity {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .rare {
+            background: #FFD700;
+            color: #1a1a2e;
+        }
+
+        .uncommon {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .common {
+            background: #9E9E9E;
+            color: white;
+        }
+
+        .legendary {
+            background: #9C27B0;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🎴 Productos de Muestra - Hencho TCG</h1>
+
+        <div class="instructions">
+            <h3>📋 Instrucciones:</h3>
+            <p>Esta tabla contiene 10 productos de muestra para Hencho TCG. Puedes copiar estos datos y crear un archivo
+                Excel para importar al dashboard.</p>
+            <p><strong>Formato requerido:</strong> SKU, Nombre, Cantidad, Precio</p>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>SKU</th>
+                    <th>Nombre</th>
+                    <th>Cantidad</th>
+                    <th>Precio (CLP)</th>
+                    <th>Rareza</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>PKM-001</td>
+                    <td>Charizard ex</td>
+                    <td>3</td>
+                    <td>45000</td>
+                    <td><span class="rarity legendary">Legendaria</span></td>
+                </tr>
+                <tr>
+                    <td>PKM-002</td>
+                    <td>Blastoise ex</td>
+                    <td>5</td>
+                    <td>38000</td>
+                    <td><span class="rarity legendary">Legendaria</span></td>
+                </tr>
+                <tr>
+                    <td>PKM-003</td>
+                    <td>Venusaur ex</td>
+                    <td>4</td>
+                    <td>35000</td>
+                    <td><span class="rarity legendary">Legendaria</span></td>
+                </tr>
+                <tr>
+                    <td>PKM-004</td>
+                    <td>Pikachu VMAX</td>
+                    <td>8</td>
+                    <td>28000</td>
+                    <td><span class="rarity rare">Rara</span></td>
+                </tr>
+                <tr>
+                    <td>PKM-005</td>
+                    <td>Mewtwo V</td>
+                    <td>6</td>
+                    <td>32000</td>
+                    <td><span class="rarity rare">Rara</span></td>
+                </tr>
+                <tr>
+                    <td>PKM-006</td>
+                    <td>Lugia V</td>
+                    <td>2</td>
+                    <td>42000</td>
+                    <td><span class="rarity legendary">Legendaria</span></td>
+                </tr>
+                <tr>
+                    <td>PKM-007</td>
+                    <td>Rayquaza VMAX</td>
+                    <td>3</td>
+                    <td>48000</td>
+                    <td><span class="rarity legendary">Legendaria</span></td>
+                </tr>
+                <tr>
+                    <td>PKM-008</td>
+                    <td>Snorlax V</td>
+                    <td>7</td>
+                    <td>25000</td>
+                    <td><span class="rarity rare">Rara</span></td>
+                </tr>
+                <tr>
+                    <td>PKM-009</td>
+                    <td>Dragonite V</td>
+                    <td>5</td>
+                    <td>30000</td>
+                    <td><span class="rarity rare">Rara</span></td>
+                </tr>
+                <tr>
+                    <td>PKM-010</td>
+                    <td>Gyarados V</td>
+                    <td>6</td>
+                    <td>27000</td>
+                    <td><span class="rarity rare">Rara</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="instructions" style="margin-top: 30px;">
+            <h3>💡 Datos para Excel:</h3>
+            <p>Puedes copiar estos datos directamente a Excel:</p>
+            <pre style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 5px; overflow-x: auto;">
+SKU,Nombre,Cantidad,Precio
+PKM-001,Charizard ex,3,45000
+PKM-002,Blastoise ex,5,38000
+PKM-003,Venusaur ex,4,35000
+PKM-004,Pikachu VMAX,8,28000
+PKM-005,Mewtwo V,6,32000
+PKM-006,Lugia V,2,42000
+PKM-007,Rayquaza VMAX,3,48000
+PKM-008,Snorlax V,7,25000
+PKM-009,Dragonite V,5,30000
+PKM-010,Gyarados V,6,27000
+            </pre>
+        </div>
+    </div>
+</body>
+
+</html>
