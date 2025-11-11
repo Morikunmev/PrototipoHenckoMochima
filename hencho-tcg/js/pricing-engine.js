@@ -9,11 +9,30 @@ const pricingEngine = {
   MIN_MARGIN_PERCENTAGE: 15, // Margen mínimo
   MAX_MARGIN_PERCENTAGE: 50, // Margen máximo
 
-  // Márgenes específicos por tipo de producto
-  MARGINS_BY_CATEGORY: {
-    premium: 40, // Productos premium (precio > 50000)
-    standard: 30, // Productos estándar
-    basic: 25, // Productos básicos
+  // Márgenes específicos por tipo de producto (se pueden personalizar)
+  getMargins: () => {
+    // Cargar configuración guardada o usar valores por defecto
+    const savedConfig = localStorage.getItem("hencho_tcg_pricing_config");
+    if (savedConfig) {
+      try {
+        const config = JSON.parse(savedConfig);
+        if (config.margins) {
+          return config.margins;
+        }
+      } catch (e) {
+        console.warn("Error al cargar márgenes guardados:", e);
+      }
+    }
+    return {
+      premium: 40, // Productos premium (precio > 50000)
+      standard: 30, // Productos estándar
+      basic: 25, // Productos básicos
+    };
+  },
+  
+  // Mantener compatibilidad con código existente
+  get MARGINS_BY_CATEGORY() {
+    return this.getMargins();
   },
 
   /**
@@ -45,8 +64,29 @@ const pricingEngine = {
    * @returns {string} Categoría del producto
    */
   getProductCategory: (price) => {
-    if (price > 50000) return "premium";
-    if (price >= 25000) return "standard";
+    // Cargar configuración guardada o usar valores por defecto
+    const savedConfig = localStorage.getItem("hencho_tcg_pricing_config");
+    let ranges = {
+      premium: { min: 50000, max: null },
+      standard: { min: 25000, max: 50000 },
+      basic: { min: 0, max: 25000 }
+    };
+    
+    if (savedConfig) {
+      try {
+        const config = JSON.parse(savedConfig);
+        if (config.categoryRanges) {
+          ranges = config.categoryRanges;
+        }
+      } catch (e) {
+        console.warn("Error al cargar configuración de precios:", e);
+      }
+    }
+    
+    // Orden de verificación: Premium > Standard > Basic
+    if (ranges.premium.min && price > ranges.premium.min) return "premium";
+    if (ranges.standard.min && ranges.standard.max && price > ranges.standard.min && price <= ranges.standard.max) return "standard";
+    // Basic: todos los demás (precio <= basic.max o precio <= standard.min)
     return "basic";
   },
 
@@ -59,7 +99,8 @@ const pricingEngine = {
    */
   calculateRecommendedPrice: (product, cost = null, category = null) => {
     // Obtener costo del producto o usar el proporcionado
-    const productCost = cost || Number(product.cost || 0) || Number(product.price || 0) * 0.7; // Estimación si no hay costo
+    // Prioridad: 1) cost proporcionado, 2) product.cost, 3) estimación (70% del precio)
+    const productCost = cost !== null ? cost : (Number(product.cost || 0) > 0 ? Number(product.cost) : (Number(product.price || 0) > 0 ? Number(product.price || 0) * 0.7 : 0));
 
     // Determinar categoría
     const productCategory =
@@ -67,8 +108,9 @@ const pricingEngine = {
       pricingEngine.getProductCategory(Number(product.price || 0));
 
     // Obtener margen según categoría
+    const margins = pricingEngine.getMargins();
     const marginPercentage =
-      pricingEngine.MARGINS_BY_CATEGORY[productCategory] ||
+      margins[productCategory] ||
       pricingEngine.DEFAULT_MARGIN_PERCENTAGE;
 
     // Calcular precio recomendado
@@ -161,7 +203,9 @@ const pricingEngine = {
       (r) => r.recommendation === "Precio adecuado"
     );
 
-    const totalPotentialRevenue = recommendations.reduce(
+    // Calcular potencial solo de productos que necesitan ajuste (excluir los que tienen precio adecuado)
+    const productsNeedingAdjustment = [...productsNeedingIncrease, ...productsNeedingDecrease];
+    const totalPotentialRevenue = productsNeedingAdjustment.reduce(
       (sum, r) => sum + (r.recommendedPrice - (r.currentPrice || 0)),
       0
     );

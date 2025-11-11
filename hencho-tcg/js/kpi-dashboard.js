@@ -10,6 +10,17 @@ const kpiDashboard = {
    * @returns {Object} KPIs calculados
    */
   calculateKPIs: (products) => {
+    if (!products || products.length === 0) {
+      console.warn("[KPI] No hay productos para calcular KPIs");
+      return {
+        inventory: { totalProducts: 0, totalStock: 0, totalValue: 0, averagePrice: 0, averageStock: 0 },
+        alerts: { totalAlerts: 0, lowStock: 0, criticalStock: 0, outOfStock: 0 },
+        anticipation: { productsNeedingRestock: 0, totalRecommendedOrder: 0, urgentProducts: { count: 0 } },
+        pricing: { productsNeedingPriceAdjustment: 0, potentialRevenueIncrease: 0, productsWithAdequatePrice: 0 },
+        health: { score: 0, status: "critico" }
+      };
+    }
+
     const totalProducts = products.length;
     const totalStock = products.reduce(
       (sum, p) => sum + Number(p.quantity || 0),
@@ -24,13 +35,26 @@ const kpiDashboard = {
       : 0;
 
     // Obtener alertas
-    const alerts = alertService.getAlertsSummary(products);
+    const alerts = typeof alertService !== "undefined" && alertService.getAlertsSummary
+      ? alertService.getAlertsSummary(products)
+      : { totalAlerts: 0, lowStock: { count: 0 }, criticalStock: { count: 0 }, outOfStock: { count: 0 } };
 
     // Obtener anticipación
-    const anticipation = anticipationService.getAnticipationSummary(products);
+    const anticipation = typeof anticipationService !== "undefined" && anticipationService.getAnticipationSummary
+      ? anticipationService.getAnticipationSummary(products)
+      : { totalProductsNeedingRestock: 0, totalRecommendedOrder: 0, urgentProducts: { count: 0 } };
 
     // Obtener análisis de precios
-    const pricing = pricingEngine.getPricingSummary(products);
+    const pricing = typeof pricingEngine !== "undefined" && pricingEngine.getPricingSummary
+      ? pricingEngine.getPricingSummary(products)
+      : { productsNeedingIncrease: { count: 0 }, productsNeedingDecrease: { count: 0 }, totalPotentialRevenue: 0, productsWithAdequatePrice: { count: 0 } };
+
+    console.log("[KPI] Calculando KPIs:", {
+      totalProducts,
+      alerts: alerts.totalAlerts,
+      anticipation: anticipation.totalProductsNeedingRestock,
+      pricing: pricing.productsNeedingIncrease.count + pricing.productsNeedingDecrease.count
+    });
 
     return {
       inventory: {
@@ -75,18 +99,18 @@ const kpiDashboard = {
   calculateHealthScore: (alerts, anticipation, pricing) => {
     let score = 100;
 
-    // Penalizar por alertas
-    score -= alerts.totalAlerts * 5;
-    score -= alerts.criticalStock.count * 10;
-    score -= alerts.outOfStock.count * 15;
+    // Penalizar por alertas (valores reducidos)
+    score -= alerts.totalAlerts * 1;  // Reducido de 5 a 1
+    score -= alerts.criticalStock.count * 3;  // Reducido de 10 a 3
+    score -= alerts.outOfStock.count * 5;  // Reducido de 15 a 5
 
     // Penalizar por productos que necesitan reabastecimiento urgente
-    score -= anticipation.urgentProducts.count * 8;
+    score -= anticipation.urgentProducts.count * 2;  // Reducido de 8 a 2
 
     // Penalizar por productos con precios inadecuados
-    score -= (pricing.productsNeedingIncrease.count + pricing.productsNeedingDecrease.count) * 2;
+    score -= (pricing.productsNeedingIncrease.count + pricing.productsNeedingDecrease.count) * 0.5;  // Reducido de 2 a 0.5
 
-    return Math.max(0, Math.min(100, score));
+    return Math.max(0, Math.min(100, Math.round(score)));
   },
 
   /**

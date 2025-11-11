@@ -32,6 +32,7 @@ const excelService = {
               quantity: Number(
                 product.Cantidad || product.cantidad || product.quantity || 0
               ),
+              cost: product.Costo || product.costo || product.cost ? Number(product.Costo || product.costo || product.cost) : null,
               price: Number(
                 product.Precio || product.precio || product.price || 0
               ),
@@ -59,6 +60,7 @@ const excelService = {
                   ...existingProduct,
                   name: product.name,
                   quantity: product.quantity,
+                  cost: product.cost !== undefined ? product.cost : existingProduct.cost,
                   price: product.price,
                 });
                 duplicates.push({ sku, action: "updated" });

@@ -66,15 +66,15 @@ const kpiDashboard = {
   calculateHealthScore: (alerts, pricing) => {
     let score = 100;
 
-    // Penalizar por alertas
-    score -= alerts.totalAlerts * 5;
-    score -= alerts.criticalStock.count * 10;
-    score -= alerts.outOfStock.count * 15;
+    // Penalizar por alertas (valores reducidos)
+    score -= alerts.totalAlerts * 1;  // Reducido de 5 a 1
+    score -= alerts.criticalStock.count * 3;  // Reducido de 10 a 3
+    score -= alerts.outOfStock.count * 5;  // Reducido de 15 a 5
 
     // Penalizar por productos con precios inadecuados
-    score -= (pricing.productsNeedingIncrease.count + pricing.productsNeedingDecrease.count) * 2;
+    score -= (pricing.productsNeedingIncrease.count + pricing.productsNeedingDecrease.count) * 0.5;  // Reducido de 2 a 0.5
 
-    return Math.max(0, Math.min(100, score));
+    return Math.max(0, Math.min(100, Math.round(score)));
   },
 
   /**

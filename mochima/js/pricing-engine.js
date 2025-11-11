@@ -206,7 +206,9 @@ const pricingEngine = {
       (r) => r.recommendation === "Precio adecuado"
     );
 
-    const totalPotentialRevenue = recommendations.reduce(
+    // Calcular potencial solo de productos que necesitan ajuste (excluir los que tienen precio adecuado)
+    const productsNeedingAdjustment = [...productsNeedingIncrease, ...productsNeedingDecrease];
+    const totalPotentialRevenue = productsNeedingAdjustment.reduce(
       (sum, r) => sum + (r.recommendedPrice - (r.currentPrice || 0)),
       0
     );

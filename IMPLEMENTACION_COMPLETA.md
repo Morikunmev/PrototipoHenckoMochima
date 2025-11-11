@@ -39,13 +39,16 @@ Se ha implementado completamente todas las funcionalidades del proyecto según l
   - Prevención de duplicados en el mismo archivo Excel
 
 #### 2.5 Dashboard centro de control para KPIs y automatización ✅
-- **Estado**: Implementado
+- **Estado**: Implementado (mejorado)
 - **Archivos**: `hencho-tcg/js/kpi-dashboard.js`, `mochima/js/kpi-dashboard.js`
 - **Funcionalidad**:
   - Cálculo de KPIs principales
-  - Score de salud del inventario (0-100)
+  - Score de salud del inventario (0-100) con penalizaciones optimizadas
   - Recomendaciones automáticas
   - Métricas de alertas, anticipación y precios
+  - Botón "Mejorar Salud del Inventario" (aparece cuando score < 60)
+  - Explicación integrada de qué son los KPIs
+  - Posicionamiento mejorado en el dashboard (más arriba)
 
 ### **SPRINT 2 - GESTIÓN INVENTARIOS** ✅
 
@@ -91,9 +94,24 @@ Se ha implementado completamente todas las funcionalidades del proyecto según l
   - Márgenes diferenciados por categoría (premium, standard, basic)
   - Análisis de precios actuales vs recomendados
   - Detección de productos con precios inadecuados
-  - Cálculo de potencial de ingresos
+  - Cálculo de potencial de ingresos (solo productos que necesitan ajuste)
   - Aplicación automática de precios recomendados
   - **Mochima**: Soporte para costos variables (especial pollo)
+
+#### 4.4 Interfaz automatización precios ✅
+- **Estado**: Implementado
+- **Archivos**: `hencho-tcg/js/ui.js`, `hencho-tcg/js/app.js`, `hencho-tcg/index.html`
+- **Funcionalidad**:
+  - Modal de configuración de márgenes y categorías
+  - Configuración personalizable de márgenes por categoría
+  - Configuración personalizable de rangos de precios para categorías
+  - Validación de rangos adyacentes
+  - Persistencia en localStorage
+  - Scroll automático al abrir el modal
+  - Aplicación de precios recomendados por unidad (botón "Aplicar" individual)
+  - Visualización de categoría y margen en la tabla de productos
+  - Colores diferenciados por categoría (Premium: dorado, Standard: verde, Basic: azul)
+  - Indicador visual cuando el precio ya está aplicado (✓)
 
 ## 📁 Archivos Creados
 
@@ -102,6 +120,7 @@ Se ha implementado completamente todas las funcionalidades del proyecto según l
 - `hencho-tcg/js/anticipation.js` - Sistema de anticipación 7 días
 - `hencho-tcg/js/pricing-engine.js` - Motor de cálculo de precios
 - `hencho-tcg/js/kpi-dashboard.js` - Dashboard de KPIs
+- `hencho-tcg/js/performance-logger.js` - Sistema de logging de rendimiento
 
 ### **Mochima**
 - `mochima/js/alerts.js` - Sistema de alertas de stock
@@ -111,18 +130,20 @@ Se ha implementado completamente todas las funcionalidades del proyecto según l
 ## 📝 Archivos Modificados
 
 ### **Hencho TCG**
-- `hencho-tcg/index.html` - Agregados paneles de KPIs, alertas, anticipación y precios
-- `hencho-tcg/js/app.js` - Integración de nuevas funcionalidades
-- `hencho-tcg/js/ui.js` - Funciones de renderizado para nuevas secciones
-- `hencho-tcg/js/excel.js` - Eliminación de duplicados
-- `hencho-tcg/css/style.css` - Estilos para nuevos paneles
+- `hencho-tcg/index.html` - Agregados paneles de KPIs, alertas, anticipación, precios, ventas y estadísticas
+- `hencho-tcg/js/app.js` - Integración de nuevas funcionalidades, control de cantidad, ventas, configuración de precios
+- `hencho-tcg/js/ui.js` - Funciones de renderizado para nuevas secciones, tabla con categoría y margen, modal de configuración
+- `hencho-tcg/js/storage.js` - Control de cantidad (aumentar/disminuir), sistema de ventas
+- `hencho-tcg/js/excel.js` - Eliminación de duplicados, manejo de campo "costo"
+- `hencho-tcg/css/style.css` - Estilos para nuevos paneles, botones de acción, controles de cantidad
 
 ### **Mochima**
-- `mochima/index.html` - Agregados paneles de KPIs, alertas y precios
-- `mochima/js/app.js` - Integración de nuevas funcionalidades
-- `mochima/js/ui.js` - Funciones de renderizado para nuevas secciones
-- `mochima/js/excel.js` - Eliminación de duplicados
-- `mochima/css/style.css` - Estilos para nuevos paneles
+- `mochima/index.html` - Agregados paneles de KPIs, alertas, precios, ventas y estadísticas
+- `mochima/js/app.js` - Integración de nuevas funcionalidades, control de cantidad, ventas
+- `mochima/js/ui.js` - Funciones de renderizado para nuevas secciones, tabla con categoría y margen
+- `mochima/js/storage.js` - Control de cantidad (aumentar/disminuir), sistema de ventas
+- `mochima/js/excel.js` - Eliminación de duplicados, manejo de campo "costo"
+- `mochima/css/style.css` - Estilos para nuevos paneles, botones de acción, controles de cantidad
 
 ## 🎯 Funcionalidades por Tarea de la Carta Gantt
 
@@ -138,6 +159,8 @@ Se ha implementado completamente todas las funcionalidades del proyecto según l
 | 3.3 Sistema alertas stock mínimo | ✅ | Alertas automáticas (HU006) |
 | 3.4 Anticipación 7 días Henko | ✅ | Sistema de anticipación |
 | 4.1 Motor cálculo precios | ✅ | Motor automático (HU002) |
+| 4.4 Interfaz automatización precios | ✅ | Configuración personalizable, aplicación por unidad |
+| 4.4 Optimización cálculo salud | ✅ | Penalizaciones ajustadas, botón de mejora |
 
 ## 🔧 Características Técnicas
 
@@ -155,16 +178,23 @@ Se ha implementado completamente todas las funcionalidades del proyecto según l
 
 ### **Motor de Precios (HU002)**
 - **Cálculo automático** basado en costos y márgenes
-- **Márgenes diferenciados** por categoría de producto
+- **Márgenes diferenciados** por categoría de producto (Premium, Standard, Basic)
+- **Configuración personalizable**: Modal para ajustar márgenes y rangos de categorías
 - **Análisis comparativo** de precios actuales vs recomendados
-- **Aplicación masiva** de precios recomendados
+- **Aplicación por unidad**: Botón "Aplicar" individual para cada producto
+- **Aplicación masiva**: Botón para aplicar todos los precios recomendados
+- **Visualización en tabla**: Columna de categoría y margen con colores
+- **Potencial de ingresos**: Cálculo solo de productos que necesitan ajuste
 - **Costos variables** para Mochima (pollo, salmón, atún)
 
 ### **Dashboard de KPIs**
-- **Score de salud** del inventario (0-100)
+- **Score de salud** del inventario (0-100) con penalizaciones optimizadas
 - **Métricas consolidadas**: Alertas, anticipación, precios
 - **Recomendaciones automáticas** priorizadas
 - **Visualización** con colores según estado
+- **Botón de mejora**: Recomendaciones automáticas para mejorar la salud
+- **Explicación integrada**: Descripción de cada KPI en el dashboard
+- **Posicionamiento mejorado**: Sección movida más arriba en el dashboard
 
 ### **Eliminación de Duplicados**
 - **Detección por SKU** antes de importar
@@ -175,23 +205,32 @@ Se ha implementado completamente todas las funcionalidades del proyecto según l
 ## 📊 Paneles del Dashboard
 
 ### **Hencho TCG**
-1. **Centro de Control - KPIs**: Score de salud, total alertas, reabastecimiento, ajuste de precios
+1. **Centro de Control - KPIs**: Score de salud, total alertas, reabastecimiento, ajuste de precios (con explicación y botón de mejora)
 2. **Alertas de Stock**: Productos sin stock, críticos y con stock bajo
 3. **Anticipación 7 Días**: Productos que necesitan reabastecimiento
-4. **Motor de Precios**: Análisis y recomendaciones de precios
+4. **Motor de Precios**: Análisis y recomendaciones de precios con configuración personalizable
+5. **Ventas e Ingresos**: Resumen de ventas y botón para ver historial completo
+6. **Estadísticas de Ventas**: Promedio, mejor día, tendencia y gráfico de 7 días
 
 ### **Mochima**
-1. **Centro de Control - KPIs**: Score de salud, total alertas, ajuste de precios
+1. **Centro de Control - KPIs**: Score de salud, total alertas, ajuste de precios (con explicación y botón de mejora)
 2. **Alertas de Stock**: Productos sin stock, críticos y con stock bajo
-3. **Motor de Precios**: Análisis con costos variables (pollo, salmón, atún)
+3. **Motor de Precios**: Análisis con costos variables (pollo, salmón, atún) y configuración personalizable
+4. **Ventas e Ingresos**: Resumen de ventas y botón para ver historial completo
+5. **Estadísticas de Ventas**: Promedio, mejor día, tendencia y gráfico de 7 días
 
 ## 🎨 Mejoras de Interfaz
 
 - **Paneles nuevos** integrados en el dashboard
-- **Colores diferenciados** por tipo de alerta
-- **Scroll automático** en listas largas
+- **Colores diferenciados** por tipo de alerta y categoría de producto
+- **Scroll automático** en listas largas y modales
 - **Información detallada** en cada panel
 - **Botones de acción** para aplicar recomendaciones
+- **Control de cantidad** con botones +/- en la tabla
+- **Búsqueda en tiempo real** de productos
+- **Modal de configuración** con scroll automático al centro
+- **Tabla mejorada** con columnas de categoría, margen y precio recomendado
+- **Indicadores visuales** para precios aplicados (✓)
 
 ## 📈 Métricas y KPIs
 
@@ -205,11 +244,18 @@ Se ha implementado completamente todas las funcionalidades del proyecto según l
 - Productos que necesitan ajuste de precios
 - Potencial de ingresos
 
-### **Score de Salud**
+### **Score de Salud** (Optimizado)
 - **Excelente** (80-100): Inventario en óptimas condiciones
 - **Bueno** (60-79): Algunas áreas de mejora
 - **Regular** (40-59): Atención requerida
 - **Crítico** (0-39): Acción inmediata necesaria
+
+**Penalizaciones optimizadas** (reducidas para evitar scores de 0):
+- Cada alerta: -1 punto (antes -5)
+- Stock crítico: -3 puntos (antes -10)
+- Sin stock: -5 puntos (antes -15)
+- Reabastecimiento urgente: -2 puntos (antes -8)
+- Precios inadecuados: -0.5 puntos (antes -2)
 
 ## 🔄 Flujo de Datos
 
@@ -227,14 +273,46 @@ Usuario → Dashboard → Carga de productos →
 
 - ✅ Sprint 1: 100% completo
 - ✅ Sprint 2: 100% completo
-- ✅ Sprint 3: 25% completo (4.1 Motor cálculo precios - hasta 11-11-2025)
+- ✅ Sprint 3: 90% completo (4.1 y 4.4 completadas con mejoras)
+
+## 🆕 Funcionalidades Adicionales Implementadas
+
+### **Control de Cantidad**
+- Botones para aumentar/disminuir cantidad directamente en la tabla
+- Actualización en tiempo real del stock
+
+### **Sistema de Ventas**
+- Botón "Vender" para registrar ventas
+- Historial completo de ventas con fecha, producto, cantidad y total
+- Estadísticas de ventas (promedio, mejor día, tendencia)
+- Gráfico de ventas de últimos 7 días
+- Métricas financieras dinámicas (ganancia neta, ingresos netos)
+
+### **Configuración de Precios Personalizable**
+- Modal para configurar márgenes por categoría
+- Configuración de rangos de precios para categorías
+- Validación de rangos adyacentes
+- Persistencia en localStorage
+- Scroll automático al abrir el modal
+
+### **Visualización Mejorada**
+- Columna de categoría en la tabla (con colores)
+- Columna de margen actual y recomendado (con colores)
+- Columna de precio recomendado con botón "Aplicar" individual
+- Indicador visual cuando el precio ya está aplicado
+
+### **Optimizaciones**
+- Cálculo de potencial de ingresos solo para productos que necesitan ajuste
+- Penalizaciones optimizadas en el cálculo de salud
+- Botón de mejora de salud con recomendaciones automáticas
+- Carga diferida de paneles (IntersectionObserver)
+- Búsqueda en tiempo real de productos
 
 ## 🚀 Próximos Pasos (Después del 11-11-2025)
 
-Las siguientes tareas quedan pendientes para después del 11-11-2025:
+Las siguientes tareas quedan pendientes:
 - 4.2 Integración costos variables (especial pollo Mochima) - **Parcialmente implementado**
 - 4.3 Recálculo márgenes dinámicos con recomendaciones
-- 4.4 Interfaz automatización precios
 - 4.5 Despliegue Sprint 3
 
 ---

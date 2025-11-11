@@ -47,26 +47,41 @@
                     </div>
                     <div class="panel panel-order-status">
                         <h3>🍣 Estado de Pedidos</h3>
-                        <div class="order-stats">
+                        <div class="order-stats" id="order-stats-container">
                             <div class="order-item">
                                 <span class="order-dot completed"></span>
                                 <span class="order-label">Listos</span>
-                                <span class="order-value">18</span>
-                                <span class="order-trend positive">+2.1%</span>
+                                <span class="order-value" id="completed-orders">0</span>
+                                <span class="order-trend" id="completed-trend">0%</span>
                             </div>
                             <div class="order-item">
                                 <span class="order-dot processing"></span>
                                 <span class="order-label">En Preparación</span>
-                                <span class="order-value">5</span>
-                                <span class="order-trend negative">-1.2%</span>
+                                <span class="order-value" id="processing-orders">0</span>
+                                <span class="order-trend" id="processing-trend">0%</span>
                             </div>
                             <div class="order-item">
                                 <span class="order-dot cancelled"></span>
                                 <span class="order-label">Cancelados</span>
-                                <span class="order-value">2</span>
-                                <span class="order-trend positive">+0.3%</span>
+                                <span class="order-value" id="cancelled-orders">0</span>
+                                <span class="order-trend" id="cancelled-trend">0%</span>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Dashboard de KPIs y Control (Movido más arriba) -->
+                    <div class="panel panel-kpi-dashboard" style="grid-column: 1 / -1;">
+                        <h3>🎯 Centro de Control - KPIs</h3>
+                        <p style="color: rgba(255,255,255,0.7); font-size: 0.9em; margin-bottom: 15px;">
+                            <strong>¿Qué son los KPIs?</strong> Son indicadores clave de rendimiento que te muestran el estado general de tu inventario:
+                        </p>
+                        <ul style="color: rgba(255,255,255,0.7); font-size: 0.85em; margin-bottom: 15px; padding-left: 20px;">
+                            <li><strong>Salud del Inventario:</strong> Puntuación de 0-100 que evalúa el estado general (alertas, stock, precios)</li>
+                            <li><strong>Total Alertas:</strong> Productos con stock bajo, crítico o sin stock</li>
+                            <li><strong>Reabastecimiento:</strong> Productos que necesitarán reposición en los próximos 7 días</li>
+                            <li><strong>Ajuste de Precios:</strong> Productos con precios que no coinciden con las recomendaciones</li>
+                        </ul>
+                        <div id="kpi-cards" class="kpi-container"></div>
                     </div>
 
                     <!-- Fila Media: Estadísticas de Inventario -->
@@ -84,12 +99,6 @@
                             <canvas id="valueChart"></canvas>
                         </div>
                     </div>
-
-                    <!-- Dashboard de KPIs y Control -->
-                    <div class="panel panel-kpi-dashboard">
-                        <h3>🎯 Centro de Control - KPIs</h3>
-                        <div id="kpi-cards" class="kpi-container"></div>
-                    </div>
                     <div class="panel panel-alerts">
                         <h3>⚠️ Alertas de Stock</h3>
                         <div id="alerts-container" class="alerts-container"></div>
@@ -99,6 +108,15 @@
                         <div id="pricing-container" class="pricing-container"></div>
                         <button id="calculate-prices-btn" class="btn btn-primary" style="margin-top: 10px;">Calcular Precios Recomendados</button>
                         <button id="apply-prices-btn" class="btn btn-secondary" style="margin-top: 10px;">Aplicar Precios Recomendados</button>
+                    </div>
+                    <div class="panel panel-sales">
+                        <h3>💵 Ventas e Ingresos</h3>
+                        <div id="sales-container" class="sales-container"></div>
+                        <button id="view-sales-history-btn" class="btn btn-primary" style="margin-top: 10px; width: 100%;">Ver Historial Completo</button>
+                    </div>
+                    <div class="panel panel-sales-stats">
+                        <h3>📊 Estadísticas de Ventas</h3>
+                        <div id="sales-stats-container" class="sales-stats-container"></div>
                     </div>
 
                     <!-- Fila Inferior: Métricas adicionales -->
@@ -162,6 +180,10 @@
                     <!-- Tabla Principal de Productos -->
                     <div class="panel panel-product-list">
                         <h3>📋 Lista de Productos</h3>
+                        <div class="search-container" style="margin-bottom: 15px;">
+                            <input type="text" id="search-products" class="search-input" placeholder="🔍 Buscar por nombre, SKU o precio..." />
+                            <span id="search-results-count" class="search-results-count"></span>
+                        </div>
                         <div class="table-container">
                             <table class="product-table">
                                 <thead>
@@ -169,7 +191,11 @@
                                         <th>SKU</th>
                                         <th>Nombre</th>
                                         <th>Cantidad</th>
+                                        <th>Costo</th>
                                         <th>Precio</th>
+                                        <th>Categoría</th>
+                                        <th>Margen</th>
+                                        <th>Precio Recomendado</th>
                                         <th>Acciones</th>
                                     </tr>
                                 </thead>
@@ -179,6 +205,21 @@
                     </div>
                 </div>
             </main>
+        </div>
+    </div>
+
+    <!-- Modal de Historial de Ventas -->
+    <div id="sales-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="max-width: 900px; max-height: 80vh; overflow-y: auto;">
+            <h2>📊 Historial de Ventas</h2>
+            <div style="margin-bottom: 15px;">
+                <button id="export-sales-btn" class="btn btn-secondary" style="margin-right: 10px;">Exportar a JSON</button>
+                <button id="clear-sales-btn" class="btn btn-danger">Limpiar Historial</button>
+            </div>
+            <div id="sales-history-container"></div>
+            <div class="modal-actions">
+                <button id="close-sales-modal" class="btn btn-primary">Cerrar</button>
+            </div>
         </div>
     </div>
 
@@ -200,7 +241,11 @@
                     <input type="number" id="product-quantity" required>
                 </div>
                 <div class="form-group">
-                    <label for="product-price">Precio</label>
+                    <label for="product-cost">Costo (CLP)</label>
+                    <input type="number" step="0.01" id="product-cost" placeholder="Costo de compra/adquisición">
+                </div>
+                <div class="form-group">
+                    <label for="product-price">Precio de Venta (CLP)</label>
                     <input type="number" step="0.01" id="product-price" required>
                 </div>
                 <div class="modal-actions">

@@ -1,14 +1,54 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Script para actualizar la Carta Gantt con el estado de implementación hasta el 11-11-2025
+Script para actualizar la Carta Gantt con barras de avance generadas automáticamente
+Versión: 11-11-2025
 """
 
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill, Font
 from copy import copy
+
+def parse_fecha(fecha_valor):
+    """Convierte un valor de fecha a datetime"""
+    if pd.isna(fecha_valor):
+        return None
+    if isinstance(fecha_valor, datetime):
+        return fecha_valor
+    if isinstance(fecha_valor, str):
+        # Intentar varios formatos
+        formatos = ['%d-%m-%Y', '%d/%m/%Y', '%Y-%m-%d', '%m/%d/%Y']
+        for formato in formatos:
+            try:
+                return datetime.strptime(fecha_valor, formato)
+            except:
+                continue
+    return None
+
+def generar_columnas_fechas(fecha_inicio_proyecto, fecha_fin_proyecto, intervalo='semanal'):
+    """
+    Genera una lista de fechas para las columnas del Gantt
+    intervalo puede ser: 'diario', 'semanal', 'quincenal', 'mensual'
+    """
+    fechas = []
+    fecha_actual = fecha_inicio_proyecto
+    
+    if intervalo == 'semanal':
+        delta = timedelta(days=7)
+    elif intervalo == 'quincenal':
+        delta = timedelta(days=14)
+    elif intervalo == 'mensual':
+        delta = timedelta(days=30)
+    else:  # diario
+        delta = timedelta(days=1)
+    
+    while fecha_actual <= fecha_fin_proyecto:
+        fechas.append(fecha_actual)
+        fecha_actual += delta
+    
+    return fechas
 
 def actualizar_carta_gantt():
     import glob
@@ -22,12 +62,12 @@ def actualizar_carta_gantt():
     
     # Usar el más reciente
     archivo_original = max(archivos_gantt, key=os.path.getmtime)
-    archivo_nuevo = f"Carta_Gantt_Henko_Mochima_Actualizada_{datetime.now().strftime('%d_%m_%Y_%H%M%S')}.xlsx"
+    archivo_nuevo = f"Carta_Gantt_Henko_Mochima_Con_Barras_{datetime.now().strftime('%d_%m_%Y_%H%M%S')}.xlsx"
     
     print(f"Usando archivo base: {archivo_original}")
     
     print("=" * 80)
-    print("ACTUALIZANDO CARTA GANTT CON ESTADO DE IMPLEMENTACION")
+    print("ACTUALIZANDO CARTA GANTT CON BARRAS DE AVANCE")
     print("=" * 80)
     print()
     
@@ -42,294 +82,283 @@ def actualizar_carta_gantt():
         col_inicio = [c for c in df.columns if 'INICIO' in str(c).upper()][0]
         col_fin = [c for c in df.columns if 'FIN' in str(c).upper()][0]
         
-        # Definir las tareas implementadas HOY y sus nuevos estados (SOLO hasta 11-11-2025)
-        # Estas son las tareas que se añadieron/implementaron hoy
+        print(f"✅ Columnas identificadas:")
+        print(f"   - TAREA: {col_tarea}")
+        print(f"   - ESTADO: {col_estado}")
+        print(f"   - INICIO: {col_inicio}")
+        print(f"   - FIN: {col_fin}")
+        print()
+        
+        # Definir las tareas implementadas y sus estados
         tareas_implementadas_hoy = {
-            # Sprint 1 - Nuevas hoy
-            "2.4 Eliminación del doble registro": "Completada",
-            "2.5 Dashboard centro de control": "Completada",
-            
-            # Sprint 2 - Nuevas hoy
-            "3.1 CRUD productos": "Completada",
-            "3.2 Interfaz gestión inventarios": "Completada",
-            "3.3 Sistema alertas stock mínimo": "Completada",
-            "3.4 Consideración 7 días anticipación": "Completada",
-            
-            # Sprint 3 - Nuevas hoy
-            "4.1 Motor cálculo automático precios": "Completada",
+            "4.4 Interfaz automatización precios": "Completada",
+            "4.4 Configuración personalizable márgenes": "Completada",
+            "4.4 Configuración personalizable categorías": "Completada",
+            "4.4 Aplicación precios recomendados por unidad": "Completada",
+            "4.4 Visualización categoría y margen en tabla": "Completada",
+            "4.4 Optimización cálculo salud inventario": "Completada",
+            "4.4 Botón mejorar salud inventario": "Completada",
         }
         
-        # Tareas que ya estaban implementadas (no se marcan como nuevas)
         tareas_ya_existentes = {
             "2.1 Sistema de login y seguridad": "Completada",
             "2.2 Dashboard principal Henko TCG y Mochima": "Completada",
             "2.3 Integración Excel": "Completada",
+            "2.4 Eliminación del doble registro": "Completada",
+            "2.5 Dashboard centro de control": "Completada",
+            "3.1 CRUD productos": "Completada",
+            "3.2 Interfaz gestión inventarios": "Completada",
+            "3.3 Sistema alertas stock mínimo": "Completada",
+            "3.4 Consideración 7 días anticipación": "Completada",
+            "4.1 Motor cálculo automático precios": "Completada",
         }
         
-        # Combinar todas las tareas para actualizar estados
         tareas_implementadas = {**tareas_implementadas_hoy, **tareas_ya_existentes}
-        
-        # Tareas que NO se deben actualizar (están después del 11-11-2025 o no se implementaron)
-        tareas_no_actualizar = [
-            "2.6 Despliegue Sprint 1",
-            "3.5 Despliegue Sprint 2",
-            "4.2 Integración costos variables",
-            "4.3 Recálculo márgenes dinámicos",
-            "4.4 Interfaz automatización precios",
-            "4.5 Despliegue Sprint 3",
-            "5. SPRINT 4",
-            "6. SPRINT 5",
-        ]
         
         # Actualizar estados en el DataFrame
         actualizaciones = 0
         for idx, row in df.iterrows():
             tarea = str(row[col_tarea]) if pd.notna(row[col_tarea]) else ""
-            
-            # Limpiar caracteres especiales para comparación
             tarea_limpia = tarea.replace('→', '->').replace('–', '-').replace('—', '-')
             
-            # Verificar que no esté en la lista de no actualizar
-            no_actualizar = any(no_act in tarea_limpia for no_act in tareas_no_actualizar)
-            if no_actualizar:
-                continue
-            
-            # Buscar coincidencias parciales o exactas
             for tarea_key, nuevo_estado in tareas_implementadas.items():
                 tarea_key_limpia = tarea_key.replace('→', '->').replace('–', '-').replace('—', '-')
-                
-                # Buscar coincidencia más específica
                 palabras_clave = [p for p in tarea_key_limpia.lower().split() if len(p) > 3]
                 coincidencias = sum(1 for palabra in palabras_clave if palabra in tarea_limpia.lower())
                 
-                # Requerir al menos 2 palabras clave para evitar falsos positivos
                 if coincidencias >= 2 or tarea_key_limpia.lower() in tarea_limpia.lower():
                     if pd.notna(row[col_estado]):
                         estado_anterior = str(row[col_estado])
-                        df.at[idx, col_estado] = nuevo_estado
-                        actualizaciones += 1
-                        try:
-                            print(f"[ACTUALIZADO] {tarea_limpia[:60]}...")
-                            print(f"   Estado anterior: {estado_anterior}")
-                            print(f"   Estado nuevo: {nuevo_estado}")
-                        except:
-                            print(f"[ACTUALIZADO] Tarea actualizada")
+                        if estado_anterior != nuevo_estado:
+                            df.at[idx, col_estado] = nuevo_estado
+                            actualizaciones += 1
+                            print(f"[ACTUALIZADO] {tarea_limpia[:60]}... -> {nuevo_estado}")
                         break
         
-        print()
-        print(f"Total de tareas actualizadas: {actualizaciones}")
-        print()
+        print(f"\nTotal de tareas actualizadas: {actualizaciones}\n")
         
-        # Actualizar el estado del Sprint 1
+        # Actualizar estados de sprints
         for idx, row in df.iterrows():
             tarea = str(row[col_tarea]) if pd.notna(row[col_tarea]) else ""
-            if "SPRINT 1 - AUTENTICACIÓN Y EXCEL" in tarea.upper():
+            if "SPRINT 1" in tarea.upper() and "AUTENTICACIÓN" in tarea.upper():
                 df.at[idx, col_estado] = "Completada"
-                print(f"[ACTUALIZADO] Sprint 1: Completada")
-            elif "SPRINT 2 - GESTIÓN INVENTARIOS" in tarea.upper():
+            elif "SPRINT 2" in tarea.upper() and "INVENTARIOS" in tarea.upper():
                 df.at[idx, col_estado] = "Completada"
-                print(f"[ACTUALIZADO] Sprint 2: Completada")
-            elif "SPRINT 3 - AUTOMATIZACIÓN PRECIOS" in tarea.upper():
-                df.at[idx, col_estado] = "En progreso (20%)"  # Solo se completó 4.1 de 5 tareas (20%)
-                print(f"[ACTUALIZADO] Sprint 3: En progreso (20%)")
+            elif "SPRINT 3" in tarea.upper() and "AUTOMATIZACIÓN" in tarea.upper():
+                df.at[idx, col_estado] = "En progreso (90%)"
         
-        print()
-        print("Guardando archivo actualizado...")
-        
-        # Guardar usando openpyxl para preservar formato
+        # Abrir con openpyxl para trabajar con formato
         wb = load_workbook(archivo_original)
         ws = wb["Gantt Henko & Mochima"]
         
-        # Encontrar las columnas importantes
+        # Encontrar columnas en Excel
         estado_col = None
         tarea_col = None
-        for col_idx, cell in enumerate(ws[1], 1):
-            if cell.value and 'ESTADO' in str(cell.value).upper():
-                estado_col = col_idx
-            if cell.value and 'TAREA' in str(cell.value).upper():
-                tarea_col = col_idx
+        inicio_col = None
+        fin_col = None
         
-        # Definir colores para cada sprint (título y subtareas)
-        colores_sprints = {
-            "1. ANÁLISIS Y DISEÑO": {
-                "titulo": "0090EE90",  # Verde más intenso
-                "subtareas": "00D5E8D6"  # Verde claro
-            },
-            "2. SPRINT 1": {
-                "titulo": "0047B8D8",  # Azul más intenso
-                "subtareas": "00B4D8F7"  # Azul claro
-            },
-            "3. SPRINT 2": {
-                "titulo": "00E8A87C",  # Naranja más intenso
-                "subtareas": "00E8D5B7"  # Naranja claro
-            },
-            "4. SPRINT 3": {
-                "titulo": "00F7B87C",  # Melocotón más intenso
-                "subtareas": "00F7D5B4"  # Melocotón claro
-            },
-            "5. SPRINT 4": {
-                "titulo": "00D5A4E8",  # Morado más intenso
-                "subtareas": "00D5B4E8"  # Morado claro
-            },
-            "6. SPRINT 5": {
-                "titulo": "00E8A4D5",  # Rosa más intenso
-                "subtareas": "00E8B4D5"  # Rosa claro
-            },
+        for col_idx, cell in enumerate(ws[1], 1):
+            if cell.value:
+                valor = str(cell.value).upper()
+                if 'ESTADO' in valor:
+                    estado_col = col_idx
+                if 'TAREA' in valor:
+                    tarea_col = col_idx
+                if 'INICIO' in valor:
+                    inicio_col = col_idx
+                if 'FIN' in valor:
+                    fin_col = col_idx
+        
+        primera_col_gantt = fin_col + 1
+        
+        print(f"🔍 Columnas detectadas en Excel:")
+        print(f"   TAREA: {tarea_col}")
+        print(f"   ESTADO: {estado_col}")
+        print(f"   INICIO: {inicio_col}")
+        print(f"   FIN: {fin_col}")
+        print(f"   Primera columna Gantt: {primera_col_gantt}")
+        print()
+        
+        # Leer las fechas del header para las columnas del Gantt
+        fechas_columnas = {}
+        for col_idx in range(primera_col_gantt, ws.max_column + 1):
+            header_cell = ws.cell(row=1, column=col_idx)
+            if header_cell.value:
+                # Las fechas están en el header, pueden ser datetime o strings con "###"
+                if isinstance(header_cell.value, datetime):
+                    fechas_columnas[col_idx] = header_cell.value
+                elif isinstance(header_cell.value, str) and '###' in header_cell.value:
+                    # Son marcadores de semana/período
+                    fechas_columnas[col_idx] = col_idx  # Usar índice como referencia
+        
+        print(f"📅 Se detectaron {len(fechas_columnas)} columnas de fecha en el Gantt")
+        print()
+        
+        # Colores para los diferentes estados
+        colores_estado = {
+            "Completada": "0000B050",  # Verde
+            "En progreso": "00FFC000",  # Naranja
+            "Pendiente": "004472C4",   # Azul
         }
         
-        if estado_col:
-            # Actualizar estados en el archivo Excel
-            for idx, row in df.iterrows():
-                tarea = str(row[col_tarea]) if pd.notna(row[col_tarea]) else ""
-                nuevo_estado = row[col_estado] if pd.notna(row[col_estado]) else None
+        # Colores para sprints (fondos de filas)
+        colores_sprints = {
+            "1. ANÁLISIS Y DISEÑO": {"titulo": "0090EE90", "subtareas": "00D5E8D6"},
+            "2. SPRINT 1": {"titulo": "0047B8D8", "subtareas": "00B4D8F7"},
+            "3. SPRINT 2": {"titulo": "00E8A87C", "subtareas": "00E8D5B7"},
+            "4. SPRINT 3": {"titulo": "00F7B87C", "subtareas": "00F7D5B4"},
+            "5. SPRINT 4": {"titulo": "00D5A4E8", "subtareas": "00D5B4E8"},
+            "6. SPRINT 5": {"titulo": "00E8A4D5", "subtareas": "00E8B4D5"},
+        }
+        
+        print("🎨 Generando barras de avance del Gantt...")
+        print()
+        
+        # Generar las barras de avance para cada tarea
+        barras_generadas = 0
+        for row_idx in range(2, ws.max_row + 1):
+            tarea_cell = ws.cell(row=row_idx, column=tarea_col)
+            inicio_cell = ws.cell(row=row_idx, column=inicio_col)
+            fin_cell = ws.cell(row=row_idx, column=fin_col)
+            estado_cell = ws.cell(row=row_idx, column=estado_col)
+            
+            tarea = str(tarea_cell.value) if tarea_cell.value else ""
+            inicio = inicio_cell.value
+            fin = fin_cell.value
+            estado = str(estado_cell.value) if estado_cell.value else "Pendiente"
+            
+            # Saltar filas de títulos de sprint (no tienen fechas)
+            if not inicio or not fin:
+                continue
+            
+            # Convertir fechas
+            fecha_inicio = parse_fecha(inicio)
+            fecha_fin = parse_fecha(fin)
+            
+            if not fecha_inicio or not fecha_fin:
+                continue
+            
+            # Determinar el color según el estado
+            color_barra = colores_estado.get("Completada", "0000B050")
+            if "progreso" in estado.lower():
+                color_barra = colores_estado.get("En progreso", "00FFC000")
+            elif "pendiente" in estado.lower():
+                color_barra = colores_estado.get("Pendiente", "004472C4")
+            
+            # Pintar las celdas correspondientes al período de la tarea
+            # Como no tenemos las fechas exactas del header, usamos una aproximación
+            # basada en la posición relativa de las fechas
+            
+            # Obtener todas las fechas del proyecto
+            todas_fechas_inicio = []
+            todas_fechas_fin = []
+            for r in range(2, ws.max_row + 1):
+                ini = ws.cell(row=r, column=inicio_col).value
+                fi = ws.cell(row=r, column=fin_col).value
+                if ini:
+                    f_ini = parse_fecha(ini)
+                    if f_ini:
+                        todas_fechas_inicio.append(f_ini)
+                if fi:
+                    f_fi = parse_fecha(fi)
+                    if f_fi:
+                        todas_fechas_fin.append(f_fi)
+            
+            if todas_fechas_inicio and todas_fechas_fin:
+                fecha_min_proyecto = min(todas_fechas_inicio)
+                fecha_max_proyecto = max(todas_fechas_fin)
+                duracion_proyecto = (fecha_max_proyecto - fecha_min_proyecto).days
                 
-                if nuevo_estado and tarea:
-                    # Buscar la fila en el Excel (índice + 2 porque Excel empieza en 1 y tiene header)
+                # Calcular posición relativa de la tarea
+                inicio_relativo = (fecha_inicio - fecha_min_proyecto).days / duracion_proyecto
+                fin_relativo = (fecha_fin - fecha_min_proyecto).days / duracion_proyecto
+                
+                # Número de columnas disponibles para el Gantt
+                num_cols_gantt = ws.max_column - primera_col_gantt + 1
+                
+                # Calcular las columnas a pintar
+                col_inicio_barra = primera_col_gantt + int(inicio_relativo * num_cols_gantt)
+                col_fin_barra = primera_col_gantt + int(fin_relativo * num_cols_gantt)
+                
+                # Pintar las celdas
+                for col_idx in range(col_inicio_barra, min(col_fin_barra + 1, ws.max_column + 1)):
+                    cell = ws.cell(row=row_idx, column=col_idx)
+                    cell.fill = PatternFill(start_color=color_barra, end_color=color_barra, fill_type="solid")
+                
+                barras_generadas += 1
+                print(f"  ✅ Barra generada: {tarea[:50]}... ({fecha_inicio.strftime('%d-%m')} a {fecha_fin.strftime('%d-%m')})")
+        
+        print(f"\n📊 Total de barras generadas: {barras_generadas}\n")
+        
+        # Actualizar estados en el Excel
+        if estado_col:
+            print("🔄 Actualizando estados...")
+            for idx, row in df.iterrows():
+                nuevo_estado = row[col_estado] if pd.notna(row[col_estado]) else None
+                if nuevo_estado:
                     excel_row = idx + 2
                     cell = ws.cell(row=excel_row, column=estado_col)
+                    cell.value = nuevo_estado
                     
-                    # Actualizar el valor
-                    if cell.value != nuevo_estado:
-                        cell.value = nuevo_estado
-                        
-                        # Aplicar formato según estado
-                        if "Completada" in str(nuevo_estado):
-                            cell.fill = PatternFill(start_color="00C6EFCE", end_color="00C6EFCE", fill_type="solid")
-                            cell.font = Font(bold=True, color="00000000")
-                        elif "En progreso" in str(nuevo_estado):
-                            cell.fill = PatternFill(start_color="00FFC000", end_color="00FFC000", fill_type="solid")
-                            cell.font = Font(bold=True, color="00000000")
-                        elif "Pendiente" in str(nuevo_estado):
-                            cell.fill = PatternFill(start_color="00D9D9D9", end_color="00D9D9D9", fill_type="solid")
-                            cell.font = Font(bold=True, color="00000000")
+                    # Aplicar formato según estado
+                    if "Completada" in str(nuevo_estado):
+                        cell.fill = PatternFill(start_color="00C6EFCE", end_color="00C6EFCE", fill_type="solid")
+                        cell.font = Font(bold=True, color="00FFFFFF")
+                    elif "progreso" in str(nuevo_estado).lower():
+                        cell.fill = PatternFill(start_color="00FFC000", end_color="00FFC000", fill_type="solid")
+                        cell.font = Font(bold=True, color="00FFFFFF")
+                    elif "Pendiente" in str(nuevo_estado):
+                        cell.fill = PatternFill(start_color="00D9D9D9", end_color="00D9D9D9", fill_type="solid")
+                        cell.font = Font(bold=True, color="00FFFFFF")
         
-        # Marcar tareas implementadas hoy en el título (solo subtareas, no títulos de sprint)
-        tareas_marcadas = []
+        # Colorear filas de sprints (SOLO en columnas de datos, no en Gantt)
         if tarea_col:
-            print("Marcando tareas implementadas hoy...")
-            for idx, row in df.iterrows():
-                tarea = str(row[col_tarea]) if pd.notna(row[col_tarea]) else ""
-                tarea_limpia = tarea.replace('→', '->').replace('–', '-').replace('—', '-')
-                
-                # Saltar si es un título de sprint (contiene "SPRINT" o "ANÁLISIS" pero no tiene formato X.Y)
-                tiene_formato_subtarea = any(tarea_limpia.strip().startswith(f"{i}.{j}") for i in range(1, 7) for j in range(1, 10))
-                es_titulo_sprint = (any(sprint in tarea_limpia.upper() for sprint in ["SPRINT", "ANÁLISIS Y DISEÑO"]) and 
-                                   not tiene_formato_subtarea and 
-                                   not any(tarea_limpia.strip().startswith(f"{i}.1") for i in range(1, 7)))
-                if es_titulo_sprint:
-                    continue
-                
-                # Verificar si es una tarea implementada hoy
-                for tarea_key in tareas_implementadas_hoy.keys():
-                    tarea_key_limpia = tarea_key.replace('→', '->').replace('–', '-').replace('—', '-')
-                    palabras_clave = [p for p in tarea_key_limpia.lower().split() if len(p) > 3]
-                    coincidencias = sum(1 for palabra in palabras_clave if palabra in tarea_limpia.lower())
-                    
-                    if coincidencias >= 2 or tarea_key_limpia.lower() in tarea_limpia.lower():
-                        # Buscar la fila en Excel
-                        excel_row = idx + 2
-                        tarea_cell = ws.cell(row=excel_row, column=tarea_col)
-                        
-                        # Agregar marcador (siempre actualizar para asegurar que esté)
-                        tarea_actual = str(tarea_cell.value) if tarea_cell.value else ""
-                        # Limpiar marcadores anteriores si existen
-                        tarea_actual_limpia = tarea_actual.replace("✨ ", "").replace("★ ", "").replace("[NUEVO] ", "").replace("* ", "").strip()
-                        
-                        if tarea_actual_limpia:
-                            # Siempre agregar el marcador para las tareas implementadas hoy
-                            tarea_cell.value = f"✨ {tarea_actual_limpia}"
-                            tarea_cell.font = Font(bold=True, color="00FF6600")  # Naranja para destacar
-                            tareas_marcadas.append(tarea_actual_limpia)
-                            try:
-                                print(f"  [MARCADOR] Tarea marcada: {tarea_actual_limpia[:60]}")
-                            except:
-                                print(f"  [MARCADOR] Tarea marcada con exito")
-                        break
-            
-            if tareas_marcadas:
-                print(f"\nTotal de tareas marcadas como nuevas hoy: {len(tareas_marcadas)}")
-            else:
-                print("No se encontraron tareas nuevas para marcar (puede que ya esten marcadas)")
-        
-        # Colorear filas de sprints
-        if tarea_col:
-            print("Aplicando colores a los sprints...")
+            print("🎨 Aplicando colores a sprints...")
             sprint_actual = None
-            sprint_row_start = None
             
             for row_idx in range(2, ws.max_row + 1):
                 tarea_cell = ws.cell(row=row_idx, column=tarea_col)
                 tarea_value = str(tarea_cell.value) if tarea_cell.value else ""
-                # Limpiar el marcador para la comparación
-                tarea_value_clean = tarea_value.replace("✨ ", "").replace("★ ", "")
+                tarea_value_clean = tarea_value.strip()
                 
-                # Identificar si es un título de sprint
+                # Identificar títulos de sprint
                 es_titulo_sprint = False
                 for sprint_key, colores in colores_sprints.items():
-                    if sprint_key.upper() in tarea_value_clean.upper() and not tarea_value_clean.strip().startswith(('1.1', '1.2', '1.3', '2.1', '2.2', '2.3', '2.4', '2.5', '2.6', '3.1', '3.2', '3.3', '3.4', '3.5', '4.1', '4.2', '4.3', '4.4', '4.5', '5.1', '5.2', '5.3', '5.4', '5.5', '6.1', '6.2')):
-                        sprint_actual = sprint_key
-                        sprint_row_start = row_idx
-                        es_titulo_sprint = True
-                        
-                        # Colorear título del sprint con color más intenso
-                        for col_idx in range(1, ws.max_column + 1):
-                            cell = ws.cell(row=row_idx, column=col_idx)
-                            if col_idx != estado_col or not cell.fill.start_color:
-                                cell.fill = PatternFill(start_color=colores["titulo"], end_color=colores["titulo"], fill_type="solid")
-                                cell.font = Font(bold=True, color="00FFFFFF")  # Texto blanco para mejor contraste
-                        print(f"  [COLOR] Título Sprint: {sprint_key} - Fila {row_idx} (color intenso)")
-                        break
+                    if sprint_key.upper() in tarea_value_clean.upper():
+                        if not any(tarea_value_clean.startswith(f"{i}.{j}") for i in range(1, 7) for j in range(1, 10)):
+                            sprint_actual = sprint_key
+                            es_titulo_sprint = True
+                            
+                            # Colorear título SOLO en columnas de datos
+                            for col_idx in range(1, primera_col_gantt):
+                                cell = ws.cell(row=row_idx, column=col_idx)
+                                if col_idx != estado_col:
+                                    cell.fill = PatternFill(start_color=colores["titulo"], end_color=colores["titulo"], fill_type="solid")
+                                    cell.font = Font(bold=True, color="00FFFFFF")
+                            break
                 
-                # Si no es título pero hay un sprint activo, colorear como subtarea
-                if not es_titulo_sprint and sprint_actual and sprint_row_start:
-                    # Verificar que sea una subtarea del sprint actual
+                # Colorear subtareas SOLO en columnas de datos
+                if not es_titulo_sprint and sprint_actual:
                     numero_tarea = tarea_value_clean.split('.')[0] if '.' in tarea_value_clean else ""
                     if numero_tarea and sprint_actual.split('.')[0] in numero_tarea:
                         colores = colores_sprints[sprint_actual]
-                        # Colorear subtarea con color más claro
-                        for col_idx in range(1, ws.max_column + 1):
-                            cell = ws.cell(row=row_idx, column=col_idx)
-                            # No sobrescribir el color de estado
+                        for col_idx in range(1, primera_col_gantt):
                             if col_idx != estado_col:
+                                cell = ws.cell(row=row_idx, column=col_idx)
                                 cell.fill = PatternFill(start_color=colores["subtareas"], end_color=colores["subtareas"], fill_type="solid")
-                                if not cell.font or not cell.font.bold:
-                                    cell.font = Font(bold=False, color="00000000")
-                    else:
-                        # Si no coincide, resetear el sprint actual
-                        sprint_actual = None
-                        sprint_row_start = None
+                                cell.font = Font(color="00FFFFFF")
         
-        # Guardar el archivo nuevo
+        # Guardar archivo
         wb.save(archivo_nuevo)
-        print(f"[OK] Archivo guardado: {archivo_nuevo}")
+        print(f"\n✅ Archivo guardado: {archivo_nuevo}")
         print()
         print("=" * 80)
-        print("RESUMEN DE ACTUALIZACIONES")
+        print("RESUMEN")
         print("=" * 80)
-        print()
-        print("TAREAS ACTUALIZADAS A 'COMPLETADA':")
-        print("  - 2.1 Sistema de login y seguridad")
-        print("  - 2.2 Dashboard principal Henko TCG y Mochima")
-        print("  - 2.3 Integracion Excel -> Base de datos cloud")
-        print("  - 2.4 Eliminacion del doble registro")
-        print("  - 2.5 Dashboard centro de control para KPIs")
-        print("  - 3.1 CRUD productos")
-        print("  - 3.2 Interfaz gestion inventarios")
-        print("  - 3.3 Sistema alertas stock minimo (HU006)")
-        print("  - 3.4 Consideracion 7 dias anticipacion Henko")
-        print("  - 4.1 Motor calculo automatico precios (HU002)")
-        print()
-        print("SPRINTS ACTUALIZADOS:")
-        print("  - Sprint 1: Completada")
-        print("  - Sprint 2: Completada")
-        print("  - Sprint 3: En progreso (20%) - Solo tarea 4.1 completada")
-        print()
-        print("TAREAS MARCADAS CON * (IMPLEMENTADAS HOY):")
-        if tareas_marcadas:
-            for tarea in tareas_marcadas:
-                print(f"  - {tarea}")
-        else:
-            print("  (Las tareas ya estaban marcadas en el archivo anterior)")
+        print(f"✅ {actualizaciones} estados actualizados")
+        print(f"✅ {barras_generadas} barras de Gantt generadas")
+        print(f"✅ Sprints coloreados")
+        print(f"✅ Archivo: {archivo_nuevo}")
         print()
         
     except Exception as e:

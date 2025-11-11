@@ -21,26 +21,34 @@ PROTOTIPO1/
 │       └── xlsx.full.min.js (SheetJS)
 │
 ├── 📁 HENCHO-TCG/ (Dashboard Empresa 1 - Cartas Pokémon)
-│   ├── index.html (219 líneas) - Dashboard específico Hencho TCG
+│   ├── index.html (308 líneas) - Dashboard específico Hencho TCG
 │   ├── css/style.css - Estilos específicos (tema azul oscuro)
 │   ├── js/ - Lógica específica Hencho TCG
-│   │   ├── app.js (243 líneas) - Controlador principal
-│   │   ├── excel.js (55 líneas) - Importación/exportación Excel
-│   │   ├── storage.js (51 líneas) - Gestión localStorage
-│   │   └── ui.js (305 líneas) - Interfaz de usuario
+│   │   ├── app.js (727 líneas) - Controlador principal
+│   │   ├── excel.js - Importación/exportación Excel con manejo de duplicados
+│   │   ├── storage.js - Gestión localStorage con control de cantidad y ventas
+│   │   ├── ui.js (1351 líneas) - Interfaz de usuario
+│   │   ├── alerts.js - Sistema de alertas de stock mínimo
+│   │   ├── anticipation.js - Sistema de anticipación 7 días
+│   │   ├── pricing-engine.js - Motor de cálculo automático de precios
+│   │   ├── kpi-dashboard.js - Dashboard de KPIs y recomendaciones
+│   │   └── performance-logger.js - Sistema de logging de rendimiento
 │   ├── lib/ - Librerías específicas
 │   │   ├── chart.min.js (Chart.js 3.9.1)
 │   │   └── xlsx.full.min.js (SheetJS)
 │   └── productos_muestra.html - Página de muestra (legacy)
 │
 ├── 📁 MOCHIMA/ (Dashboard Empresa 2 - Comida Japonesa)
-│   ├── index.html (219 líneas) - Dashboard específico Mochima
+│   ├── index.html - Dashboard específico Mochima
 │   ├── css/style.css - Estilos específicos (tema rojo/naranja)
 │   ├── js/ - Lógica específica Mochima
-│   │   ├── app.js (271 líneas) - Controlador principal
-│   │   ├── excel.js (55 líneas) - Importación/exportación Excel
-│   │   ├── storage.js (51 líneas) - Gestión localStorage
-│   │   └── ui.js (305 líneas) - Interfaz de usuario
+│   │   ├── app.js (554 líneas) - Controlador principal
+│   │   ├── excel.js - Importación/exportación Excel con manejo de duplicados
+│   │   ├── storage.js - Gestión localStorage con control de cantidad y ventas
+│   │   ├── ui.js (1064 líneas) - Interfaz de usuario
+│   │   ├── alerts.js - Sistema de alertas de stock mínimo
+│   │   ├── pricing-engine.js - Motor de cálculo automático de precios (con costos variables)
+│   │   └── kpi-dashboard.js - Dashboard de KPIs y recomendaciones
 │   ├── lib/ - Librerías específicas
 │   │   ├── chart.min.js (Chart.js 3.9.1)
 │   │   └── xlsx.full.min.js (SheetJS)
@@ -178,6 +186,7 @@ const product = {
   name: string, // Nombre del producto
   quantity: number, // Cantidad en stock
   price: number, // Precio en CLP
+  cost: number, // Costo del producto (opcional, para cálculo de márgenes)
 };
 ```
 
@@ -186,9 +195,19 @@ const product = {
 ```javascript
 // Hencho TCG
 localStorage['hencho_tcg_products'] = JSON.stringify([product1, product2, ...]);
+localStorage['hencho_tcg_sales'] = JSON.stringify([sale1, sale2, ...]);
+localStorage['hencho_tcg_pricing_config'] = JSON.stringify({
+  categoryRanges: { premium: {...}, standard: {...}, basic: {...} },
+  margins: { premium: 40, standard: 30, basic: 25 }
+});
 
 // Mochima
 localStorage['mochima_products'] = JSON.stringify([product1, product2, ...]);
+localStorage['mochima_sales'] = JSON.stringify([sale1, sale2, ...]);
+localStorage['mochima_pricing_config'] = JSON.stringify({
+  categoryRanges: { premium: {...}, standard: {...}, basic: {...} },
+  margins: { premium: 40, standard: 30, basic: 25 }
+});
 
 // Autenticación global
 localStorage['isAuthenticated'] = 'true';
@@ -319,20 +338,65 @@ background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
 ### **CRUD de Productos**
 
 - **Crear**: Modal con formulario, validación, ID único
-- **Leer**: Tabla con todos los productos, búsqueda visual
+- **Leer**: Tabla con todos los productos, búsqueda en tiempo real
 - **Actualizar**: Mismo modal en modo edición
 - **Eliminar**: Confirmación de seguridad, eliminación por ID
+- **Control de cantidad**: Botones para aumentar/disminuir cantidad
+- **Campo de costo**: Nuevo campo para cálculo de márgenes
 
 ### **Importación/Exportación Excel**
 
 - **Importar**: `.xlsx`, `.xls`, mapeo flexible de columnas
 - **Exportar**: Descarga automática, formato Excel estándar
 - **Validación**: Limpieza de datos, generación de IDs
+- **Manejo de duplicados**: Detección por SKU, actualización en lugar de duplicar
 - **Librería**: SheetJS para manipulación
+
+### **Sistema de Alertas de Stock (HU006)**
+
+- **Detección automática**: Stock bajo, crítico y sin stock
+- **Umbrales configurables**: Por empresa (Hencho: 5/2, Mochima: 10/5)
+- **Visualización**: Panel con colores diferenciados
+- **Actualización en tiempo real**: Se actualiza al modificar productos
+
+### **Sistema de Anticipación 7 Días (Solo Hencho TCG)**
+
+- **Cálculo de consumo diario**: Basado en precio y categoría
+- **Predicción de necesidades**: Productos que necesitarán reabastecimiento
+- **Productos urgentes**: Identificación de productos con ≤3 días
+- **Recomendaciones de pedidos**: Cantidad sugerida para reabastecer
+
+### **Motor de Cálculo Automático de Precios (HU002)**
+
+- **Cálculo basado en costos**: Precio = Costo × (1 + Margen%)
+- **Categorías de productos**: Premium, Standard, Basic (basadas en precio)
+- **Márgenes diferenciados**: Por categoría (configurables)
+- **Configuración personalizable**: Modal para ajustar márgenes y rangos de categorías
+- **Aplicación por unidad**: Botón "Aplicar" para cada producto individualmente
+- **Visualización en tabla**: Columna de categoría y margen con colores
+- **Análisis de precios**: Comparación de precios actuales vs recomendados
+- **Potencial de ingresos**: Cálculo de ganancia/pérdida potencial
+
+### **Dashboard de KPIs**
+
+- **Score de salud del inventario**: 0-100 con penalizaciones ajustadas
+- **Total de alertas**: Suma de todas las alertas de stock
+- **Reabastecimiento**: Productos que necesitan reposición
+- **Ajuste de precios**: Productos con precios inadecuados
+- **Botón de mejora**: Recomendaciones automáticas para mejorar la salud
+- **Explicación integrada**: Descripción de cada KPI en el dashboard
+
+### **Sistema de Ventas**
+
+- **Registro de ventas**: Al hacer clic en "Vender"
+- **Historial completo**: Modal con todas las ventas
+- **Estadísticas de ventas**: Promedio, mejor día, tendencia
+- **Gráfico de ventas**: Línea de tiempo de últimos 7 días
+- **Métricas financieras**: Ganancia neta, ingresos netos, estado de pedidos
 
 ### **Visualizaciones**
 
-- **Gráficos**: Chart.js 3.9.1, barras interactivas
+- **Gráficos**: Chart.js 3.9.1, barras y líneas interactivas
 - **Estadísticas**: Total productos, stock, valor inventario
 - **Tiempo real**: Actualización automática al cambiar datos
 - **Colores**: Paleta específica por empresa
@@ -343,6 +407,13 @@ background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
 - **Navegación**: Panel central de selección
 - **Temas**: Colores diferenciados por empresa
 - **Escalabilidad**: Estructura preparada para más empresas
+
+### **Optimizaciones de UX**
+
+- **Scroll automático**: Modal de configuración se centra automáticamente
+- **Búsqueda en tiempo real**: Filtrado instantáneo de productos
+- **Carga diferida**: Paneles se cargan al hacer scroll (IntersectionObserver)
+- **Logging de rendimiento**: Medición de tiempos de operaciones críticas
 
 ## 📱 RESPONSIVE DESIGN
 
