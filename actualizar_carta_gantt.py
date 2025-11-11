@@ -11,8 +11,20 @@ from openpyxl.styles import PatternFill, Font
 from copy import copy
 
 def actualizar_carta_gantt():
-    archivo_original = "Carta_Gantt_Henko_Mochima_12_Oct_2025.xlsx"
+    import glob
+    import os
+    
+    # Buscar el archivo más reciente de la Carta Gantt
+    archivos_gantt = glob.glob("Carta_Gantt*.xlsx")
+    if not archivos_gantt:
+        print("[ERROR] No se encontró ningún archivo de Carta Gantt")
+        return
+    
+    # Usar el más reciente
+    archivo_original = max(archivos_gantt, key=os.path.getmtime)
     archivo_nuevo = f"Carta_Gantt_Henko_Mochima_Actualizada_{datetime.now().strftime('%d_%m_%Y_%H%M%S')}.xlsx"
+    
+    print(f"Usando archivo base: {archivo_original}")
     
     print("=" * 80)
     print("ACTUALIZANDO CARTA GANTT CON ESTADO DE IMPLEMENTACION")
@@ -30,24 +42,32 @@ def actualizar_carta_gantt():
         col_inicio = [c for c in df.columns if 'INICIO' in str(c).upper()][0]
         col_fin = [c for c in df.columns if 'FIN' in str(c).upper()][0]
         
-        # Definir las tareas implementadas y sus nuevos estados (SOLO hasta 11-11-2025)
-        tareas_implementadas = {
-            # Sprint 1
-            "2.1 Sistema de login y seguridad": "Completada",
-            "2.2 Dashboard principal Henko TCG y Mochima": "Completada",
-            "2.3 Integración Excel": "Completada",
+        # Definir las tareas implementadas HOY y sus nuevos estados (SOLO hasta 11-11-2025)
+        # Estas son las tareas que se añadieron/implementaron hoy
+        tareas_implementadas_hoy = {
+            # Sprint 1 - Nuevas hoy
             "2.4 Eliminación del doble registro": "Completada",
             "2.5 Dashboard centro de control": "Completada",
             
-            # Sprint 2
+            # Sprint 2 - Nuevas hoy
             "3.1 CRUD productos": "Completada",
             "3.2 Interfaz gestión inventarios": "Completada",
             "3.3 Sistema alertas stock mínimo": "Completada",
             "3.4 Consideración 7 días anticipación": "Completada",
             
-            # Sprint 3 (SOLO hasta 11-11-2025)
+            # Sprint 3 - Nuevas hoy
             "4.1 Motor cálculo automático precios": "Completada",
         }
+        
+        # Tareas que ya estaban implementadas (no se marcan como nuevas)
+        tareas_ya_existentes = {
+            "2.1 Sistema de login y seguridad": "Completada",
+            "2.2 Dashboard principal Henko TCG y Mochima": "Completada",
+            "2.3 Integración Excel": "Completada",
+        }
+        
+        # Combinar todas las tareas para actualizar estados
+        tareas_implementadas = {**tareas_implementadas_hoy, **tareas_ya_existentes}
         
         # Tareas que NO se deben actualizar (están después del 11-11-2025 o no se implementaron)
         tareas_no_actualizar = [
@@ -183,6 +203,54 @@ def actualizar_carta_gantt():
                             cell.fill = PatternFill(start_color="00D9D9D9", end_color="00D9D9D9", fill_type="solid")
                             cell.font = Font(bold=True, color="00000000")
         
+        # Marcar tareas implementadas hoy en el título (solo subtareas, no títulos de sprint)
+        tareas_marcadas = []
+        if tarea_col:
+            print("Marcando tareas implementadas hoy...")
+            for idx, row in df.iterrows():
+                tarea = str(row[col_tarea]) if pd.notna(row[col_tarea]) else ""
+                tarea_limpia = tarea.replace('→', '->').replace('–', '-').replace('—', '-')
+                
+                # Saltar si es un título de sprint (contiene "SPRINT" o "ANÁLISIS" pero no tiene formato X.Y)
+                tiene_formato_subtarea = any(tarea_limpia.strip().startswith(f"{i}.{j}") for i in range(1, 7) for j in range(1, 10))
+                es_titulo_sprint = (any(sprint in tarea_limpia.upper() for sprint in ["SPRINT", "ANÁLISIS Y DISEÑO"]) and 
+                                   not tiene_formato_subtarea and 
+                                   not any(tarea_limpia.strip().startswith(f"{i}.1") for i in range(1, 7)))
+                if es_titulo_sprint:
+                    continue
+                
+                # Verificar si es una tarea implementada hoy
+                for tarea_key in tareas_implementadas_hoy.keys():
+                    tarea_key_limpia = tarea_key.replace('→', '->').replace('–', '-').replace('—', '-')
+                    palabras_clave = [p for p in tarea_key_limpia.lower().split() if len(p) > 3]
+                    coincidencias = sum(1 for palabra in palabras_clave if palabra in tarea_limpia.lower())
+                    
+                    if coincidencias >= 2 or tarea_key_limpia.lower() in tarea_limpia.lower():
+                        # Buscar la fila en Excel
+                        excel_row = idx + 2
+                        tarea_cell = ws.cell(row=excel_row, column=tarea_col)
+                        
+                        # Agregar marcador (siempre actualizar para asegurar que esté)
+                        tarea_actual = str(tarea_cell.value) if tarea_cell.value else ""
+                        # Limpiar marcadores anteriores si existen
+                        tarea_actual_limpia = tarea_actual.replace("✨ ", "").replace("★ ", "").replace("[NUEVO] ", "").replace("* ", "").strip()
+                        
+                        if tarea_actual_limpia:
+                            # Siempre agregar el marcador para las tareas implementadas hoy
+                            tarea_cell.value = f"✨ {tarea_actual_limpia}"
+                            tarea_cell.font = Font(bold=True, color="00FF6600")  # Naranja para destacar
+                            tareas_marcadas.append(tarea_actual_limpia)
+                            try:
+                                print(f"  [MARCADOR] Tarea marcada: {tarea_actual_limpia[:60]}")
+                            except:
+                                print(f"  [MARCADOR] Tarea marcada con exito")
+                        break
+            
+            if tareas_marcadas:
+                print(f"\nTotal de tareas marcadas como nuevas hoy: {len(tareas_marcadas)}")
+            else:
+                print("No se encontraron tareas nuevas para marcar (puede que ya esten marcadas)")
+        
         # Colorear filas de sprints
         if tarea_col:
             print("Aplicando colores a los sprints...")
@@ -192,11 +260,13 @@ def actualizar_carta_gantt():
             for row_idx in range(2, ws.max_row + 1):
                 tarea_cell = ws.cell(row=row_idx, column=tarea_col)
                 tarea_value = str(tarea_cell.value) if tarea_cell.value else ""
+                # Limpiar el marcador para la comparación
+                tarea_value_clean = tarea_value.replace("✨ ", "").replace("★ ", "")
                 
                 # Identificar si es un título de sprint
                 es_titulo_sprint = False
                 for sprint_key, colores in colores_sprints.items():
-                    if sprint_key.upper() in tarea_value.upper() and not tarea_value.strip().startswith(('1.1', '1.2', '1.3', '2.1', '2.2', '2.3', '2.4', '2.5', '2.6', '3.1', '3.2', '3.3', '3.4', '3.5', '4.1', '4.2', '4.3', '4.4', '4.5', '5.1', '5.2', '5.3', '5.4', '5.5', '6.1', '6.2')):
+                    if sprint_key.upper() in tarea_value_clean.upper() and not tarea_value_clean.strip().startswith(('1.1', '1.2', '1.3', '2.1', '2.2', '2.3', '2.4', '2.5', '2.6', '3.1', '3.2', '3.3', '3.4', '3.5', '4.1', '4.2', '4.3', '4.4', '4.5', '5.1', '5.2', '5.3', '5.4', '5.5', '6.1', '6.2')):
                         sprint_actual = sprint_key
                         sprint_row_start = row_idx
                         es_titulo_sprint = True
@@ -213,7 +283,7 @@ def actualizar_carta_gantt():
                 # Si no es título pero hay un sprint activo, colorear como subtarea
                 if not es_titulo_sprint and sprint_actual and sprint_row_start:
                     # Verificar que sea una subtarea del sprint actual
-                    numero_tarea = tarea_value.split('.')[0] if '.' in tarea_value else ""
+                    numero_tarea = tarea_value_clean.split('.')[0] if '.' in tarea_value_clean else ""
                     if numero_tarea and sprint_actual.split('.')[0] in numero_tarea:
                         colores = colores_sprints[sprint_actual]
                         # Colorear subtarea con color más claro
@@ -253,6 +323,13 @@ def actualizar_carta_gantt():
         print("  - Sprint 1: Completada")
         print("  - Sprint 2: Completada")
         print("  - Sprint 3: En progreso (20%) - Solo tarea 4.1 completada")
+        print()
+        print("TAREAS MARCADAS CON * (IMPLEMENTADAS HOY):")
+        if tareas_marcadas:
+            for tarea in tareas_marcadas:
+                print(f"  - {tarea}")
+        else:
+            print("  (Las tareas ya estaban marcadas en el archivo anterior)")
         print()
         
     except Exception as e:
